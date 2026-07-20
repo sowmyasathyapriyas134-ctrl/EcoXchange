@@ -1,6 +1,6 @@
 const express = require("express");
 const { protect } = require("../middleware/authMiddleware");
-const { authorizeRoles } = require("../middleware/roleMiddleware");
+const { requireAdmin } = require("../middleware/requireAdmin");
 const { canManageUser } = require("../middleware/permissionMiddleware");
 const {
   getAllUsers,
@@ -17,77 +17,24 @@ const {
 
 const router = express.Router();
 
-router.get(
-  "/users",
-  protect,
-  authorizeRoles("admin", "supervisor"),
-  getAllUsers,
-);
+/** All admin portal APIs require authenticated admin */
+router.use(protect, requireAdmin);
 
-router.get(
-  "/users/:id",
-  protect,
-  authorizeRoles("admin", "supervisor"),
-  canManageUser(),
-  getUserById,
-);
+router.get("/users", getAllUsers);
 
-router.patch(
-  "/users/:id/role",
-  protect,
-  authorizeRoles("admin", "supervisor"),
-  canManageUser(),
-  updateUserRole,
-);
+router.get("/users/:id", canManageUser(), getUserById);
 
-router.patch(
-  "/users/:id/suspend",
-  protect,
-  authorizeRoles("admin", "supervisor"),
-  canManageUser(),
-  suspendUser,
-);
+router.patch("/users/:id/role", canManageUser(), updateUserRole);
 
-router.patch(
-  "/users/:id/restore",
-  protect,
-  authorizeRoles("admin", "supervisor"),
-  canManageUser(),
-  restoreUser,
-);
+router.patch("/users/:id/suspend", canManageUser(), suspendUser);
 
-router.delete(
-  "/users/:id",
-  protect,
-  authorizeRoles("admin", "supervisor"),
-  canManageUser(),
-  deleteUser,
-);
+router.patch("/users/:id/restore", canManageUser(), restoreUser);
 
-// --------------------
-// Admin-only create APIs (multi-collection)
-// --------------------
-router.post(
-  "/create-supervisor",
-  protect,
-  authorizeRoles("admin"),
-  createSupervisor,
-);
+router.delete("/users/:id", canManageUser(), deleteUser);
 
-router.post(
-  "/create-delivery-agent",
-  protect,
-  authorizeRoles("admin"),
-  createDeliveryAgent,
-);
-
-router.post(
-  "/create-recycler",
-  protect,
-  authorizeRoles("admin"),
-  createRecycler,
-);
-
-router.post("/create-admin", protect, authorizeRoles("admin"), createAdmin);
+router.post("/create-supervisor", createSupervisor);
+router.post("/create-delivery-agent", createDeliveryAgent);
+router.post("/create-recycler", createRecycler);
+router.post("/create-admin", createAdmin);
 
 module.exports = { adminRoutes: router };

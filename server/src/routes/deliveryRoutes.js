@@ -14,7 +14,10 @@ const { createNotification } = require("../services/notificationService");
 
 const router = express.Router();
 
-const QR_SECRET = process.env.QR_SECRET || "eco-secret-key";
+const QR_SECRET = process.env.QR_SECRET;
+if (!QR_SECRET) {
+  throw new Error("QR_SECRET environment variable is required");
+}
 const DELIVERY_COMPLETION_RADIUS = parseFloat(process.env.DELIVERY_COMPLETION_RADIUS || "500");
 
 // Rate Limiters
@@ -126,7 +129,108 @@ router.post("/tasks/:id/accept", protect, authorizeRoles("delivery_agent"), asyn
         type: "pickup_assigned",
         metadata: { pickupId: task._id }
       });
+      io.to(String(req.user._id)).emit("task:accepted", { taskId: task._id });
     }
+
+    return res.status(200).json({ success: true, data: task });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// POST Reject Task
+router.post("/tasks/:id/reject", protect, authorizeRoles("delivery_agent"), async (req, res) => {
+  try {
+    const { reason } = req.body;
+    const task = await Pickup.findOne({ _id: req.params.id, assignedAgent: req.user._id });
+    if (!task) {
+      return res.status(404).json({ success: false, message: "Task not found or unauthorized" });
+    }
+
+    if (!["assigned", "accepted"].includes(task.status)) {
+      return res.status(400).json({ success: false, message: `Cannot reject task in '${task.status}' state` });
+    }
+
+    task.status = "rejected";
+    task.assignedAgent = undefined; // Free the task for reassignment
+    task.statusHistory.push({
+      status: "rejected",
+      changedBy: req.user._id,
+      timestamp: new Date(),
+      notes: reason || "Rejected by delivery agent"
+    });
+    await task.save();
+
+    await logAudit(req.user._id, "task_reject", "Pickup", task._id, { reason });
+
+    const io = req.app.get("io");
+    if (io) {
+      io.to(String(task.user)).emit("notification", {
+        title: "Task Rejected",
+        message: "Your pickup task was rejected. A new agent will be assigned shortly.",
+        type: "pickup_rejected",
+        metadata: { pickupId: task._id }
+      });
+    }
+
+    return res.status(200).json({ success: true, data: task });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// POST Pause Task
+router.post("/tasks/:id/pause", protect, authorizeRoles("delivery_agent"), async (req, res) => {
+  try {
+    const { reason } = req.body;
+    const task = await Pickup.findOne({ _id: req.params.id, assignedAgent: req.user._id });
+    if (!task) {
+      return res.status(404).json({ success: false, message: "Task not found or unauthorized" });
+    }
+
+    if (task.status !== "in_progress") {
+      return res.status(400).json({ success: false, message: `Cannot pause task in '${task.status}' state` });
+    }
+
+    task.status = "paused";
+    task.statusHistory.push({
+      status: "paused",
+      changedBy: req.user._id,
+      timestamp: new Date(),
+      notes: reason || "Paused by delivery agent"
+    });
+    await task.save();
+
+    await logAudit(req.user._id, "task_pause", "Pickup", task._id);
+
+    return res.status(200).json({ success: true, data: task });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// POST Resume Task
+router.post("/tasks/:id/resume", protect, authorizeRoles("delivery_agent"), async (req, res) => {
+  try {
+    const task = await Pickup.findOne({ _id: req.params.id, assignedAgent: req.user._id });
+    if (!task) {
+      return res.status(404).json({ success: false, message: "Task not found or unauthorized" });
+    }
+
+    if (task.status !== "paused") {
+      return res.status(400).json({ success: false, message: `Cannot resume task in '${task.status}' state` });
+    }
+
+    task.status = "in_progress";
+    task.statusHistory.push({
+      status: "in_progress",
+      changedBy: req.user._id,
+      timestamp: new Date(),
+      notes: "Task resumed by delivery agent"
+    });
+    await task.save();
+
+    await logAudit(req.user._id, "task_resume", "Pickup", task._id);
 
     return res.status(200).json({ success: true, data: task });
   } catch (error) {
@@ -175,6 +279,7 @@ router.post("/tasks/:id/start", protect, authorizeRoles("delivery_agent"), async
         type: "pickup_assigned",
         metadata: { pickupId: task._id }
       });
+      io.to(String(req.user._id)).emit("task:started", { taskId: task._id });
     }
 
     return res.status(200).json({ success: true, data: task });

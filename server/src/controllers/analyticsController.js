@@ -166,12 +166,12 @@ const monthlyTrends = async (_req, res, next) => {
   }
 };
 
-const supervisorOverview = async (_req, res, next) => {
+const supervisorOverview = async (req, res, next) => {
   try {
     const memberPickups = await Pickup.aggregate([
       {
         $match: {
-          supervisor: new mongoose.Types.ObjectId(_req.user._id),
+          supervisor: new mongoose.Types.ObjectId(req.user._id),
           status: "completed",
         },
       },
@@ -192,12 +192,18 @@ const supervisorOverview = async (_req, res, next) => {
 
 const memberOverview = async (req, res, next) => {
   try {
-    const completedPickups = await Pickup.countDocuments({
+    const userPickups = await Pickup.find({
       user: req.user._id,
       status: "completed",
     });
 
+    const completedPickups = userPickups.length;
     const totalPickups = await Pickup.countDocuments({ user: req.user._id });
+    
+    let totalWeight = 0;
+    userPickups.forEach(p => {
+      totalWeight += (p.actualWeight || p.weight || 0);
+    });
 
     const redeemedRewards = await RewardRedemption.countDocuments({
       user: req.user._id,
@@ -217,6 +223,10 @@ const memberOverview = async (req, res, next) => {
         redeemedRewards,
         currentMembership: user.membershipPlan || user.membershipStatus,
         membershipEndDate: user.membershipEndDate || null,
+        totalRecycledKg: totalWeight,
+        carbonSavedKg: Math.round(totalWeight * 2.5),
+        waterConservedLitres: Math.round(totalWeight * 15),
+        treesSaved: Math.max(0, Math.floor((totalWeight * 2.5) / 20)),
       },
     });
   } catch (err) {

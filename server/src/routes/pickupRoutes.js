@@ -15,6 +15,7 @@ const {
   startPickup,
   completePickup,
   getAllPickups,
+  getPickupQrToken,
 } = require("../controllers/pickupController");
 const { uploadSingleImage } = require("../middleware/uploadMiddleware");
 
@@ -39,6 +40,12 @@ pickupRouter.get(
   protect,
   authorizeRoles("trial_member", "member"),
   getPickupById,
+);
+pickupRouter.get(
+  "/:id/qr-token",
+  protect,
+  authorizeRoles("trial_member", "member"),
+  getPickupQrToken,
 );
 pickupRouter.patch(
   "/:id/cancel",

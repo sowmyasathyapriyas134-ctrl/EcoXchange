@@ -21,7 +21,8 @@ try {
 const { authRouter } = require("./routes/authRoutes");
 const { userRouter } = require("./routes/userRoutes");
 const { adminRoutes } = require("./routes/adminRoutes");
-const { pickupRouter } = require("./routes/pickupRoutes");
+const { supervisorRoutes } = require("./routes/supervisorRoutes");
+const { pickupRouter: pickupRoutes } = require("./routes/pickupRoutes");
 const { notificationRoutes } = require("./routes/notificationRoutes");
 const { rewardRoutes } = require("./routes/rewardRoutes");
 const { membershipRoutes } = require("./routes/membershipRoutes");
@@ -34,7 +35,16 @@ const { aiRouter } = require("./routes/aiRoutes");
 const { scheduleRouter } = require("./routes/scheduleRoutes");
 const { shipmentRoutes } = require("./routes/shipmentRoutes");
 const { revenueRoutes } = require("./routes/revenueRoutes");
+const { trialRouter } = require("./routes/trialRoutes");
+const { cartRouter } = require("./routes/cartRoutes");
+const { paymentRoutes } = require("./routes/paymentRoutes");
+const { orderRoutes } = require("./routes/orderRoutes");
+const { dashboardRoutes } = require("./routes/dashboardRoutes");
+const { deliveryRouter } = require("./routes/deliveryRoutes");
 const { errorMiddleware } = require("./middleware/errorMiddleware");
+const { validateEnv } = require("./config/env");
+
+validateEnv();
 
 const app = express();
 
@@ -45,6 +55,8 @@ app.use(
         process.env.CLIENT_URL,
         "http://localhost:3000",
         "http://127.0.0.1:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
       ].filter(Boolean);
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
@@ -96,8 +108,9 @@ if (docsRouter) {
 
 app.use("/api/auth", authRouter);
 app.use("/api/users", userRouter);
-app.use("/api/admin", adminRoutes);
-app.use("/api/pickups", pickupRouter);
+app.use("/api/wallet", walletRouter);
+app.use("/api/pickups", pickupRoutes);
+app.use("/api/supervisor", supervisorRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/rewards", rewardRoutes);
 app.use("/api/membership", membershipRoutes);
@@ -107,21 +120,15 @@ app.use("/api/recycler/schedules", scheduleRouter);
 app.use("/api/shipments", shipmentRoutes);
 app.use("/api/revenue", revenueRoutes);
 app.use("/api/marketplace", marketplaceRoutes);
-app.use("/api/wallet", walletRouter);
 app.use("/api/waste", wasteRouter);
 app.use("/api/ai", aiRouter);
-const { trialRouter } = require("./routes/trialRoutes");
 app.use("/api/trial", trialRouter);
-const { cartRouter } = require("./routes/cartRoutes");
 app.use("/api/cart", cartRouter);
-const { paymentRoutes } = require("./routes/paymentRoutes");
 app.use("/api/payments", paymentRoutes);
-const { orderRoutes } = require("./routes/orderRoutes");
 app.use("/api/orders", orderRoutes);
-const { dashboardRoutes } = require("./routes/dashboardRoutes");
 app.use("/api/dashboard", dashboardRoutes);
-const { deliveryRouter } = require("./routes/deliveryRoutes");
 app.use("/api/delivery", deliveryRouter);
+app.use("/api/admin", adminRoutes);
 
 // 404 handler (keep before error middleware)
 app.use((req, res) => {

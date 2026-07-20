@@ -107,4 +107,27 @@ const checkout = async (req, res, next) => {
   }
 };
 
-module.exports = { checkout };
+const getMyOrders = async (req, res, next) => {
+  try {
+    const orders = await Order.find({ user: req.user._id })
+      .sort({ createdAt: -1 })
+      .populate("items.product", "name images price category")
+      .limit(50);
+    return res.json({ success: true, message: "Your orders fetched successfully", data: orders });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+const getOrderById = async (req, res, next) => {
+  try {
+    const order = await Order.findOne({ _id: req.params.id, user: req.user._id })
+      .populate("items.product", "name images price category");
+    if (!order) return res.status(404).json({ success: false, message: "Order not found" });
+    return res.json({ success: true, message: "Order fetched successfully", data: order });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+module.exports = { checkout, getMyOrders, getOrderById };

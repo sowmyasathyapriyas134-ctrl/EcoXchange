@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 const errorMiddleware = (err, req, res, next) => {
   const statusCode =
     res.statusCode && res.statusCode !== 200 ? res.statusCode : 500;

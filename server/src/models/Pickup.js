@@ -17,10 +17,6 @@ const pickupSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Supervisor",
     },
-    recycler: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Recycler",
-    },
 
     wasteType: {
       type: String,
