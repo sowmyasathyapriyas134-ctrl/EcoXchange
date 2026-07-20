@@ -7,7 +7,7 @@ const getCart = async (req, res, next) => {
     if (!cart) {
       cart = await Cart.create({ user: req.user._id, items: [] });
     }
-    return res.status(200).json({ success: true, data: cart });
+    return res.status(200).json({ success: true, data: { items: cart.items || [], ...cart.toObject() } });
   } catch (err) {
     return next(err);
   }
@@ -45,7 +45,7 @@ const addToCart = async (req, res, next) => {
     await cart.save();
     await cart.populate("items.product");
 
-    return res.status(200).json({ success: true, message: "Added to cart", data: cart });
+    return res.status(200).json({ success: true, message: "Added to cart", data: { items: cart.items || [], ...cart.toObject() } });
   } catch (err) {
     return next(err);
   }
@@ -72,7 +72,7 @@ const updateQuantity = async (req, res, next) => {
     await cart.save();
     await cart.populate("items.product");
 
-    return res.status(200).json({ success: true, message: "Quantity updated", data: cart });
+    return res.status(200).json({ success: true, message: "Quantity updated", data: { items: cart.items || [], ...cart.toObject() } });
   } catch (err) {
     return next(err);
   }
@@ -88,7 +88,7 @@ const removeItem = async (req, res, next) => {
     await cart.save();
     await cart.populate("items.product");
 
-    return res.status(200).json({ success: true, message: "Item removed", data: cart });
+    return res.status(200).json({ success: true, message: "Item removed", data: { items: cart.items || [], ...cart.toObject() } });
   } catch (err) {
     return next(err);
   }

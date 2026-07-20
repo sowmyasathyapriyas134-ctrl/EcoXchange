@@ -290,20 +290,16 @@ const getRecyclerReport = async (req, res, next) => {
       0,
     );
 
-    const totalProductsListed = 0; // marketplace aggregation is handled in marketplace module
-    const totalSales = 0;
-
-    const estimatedProfit = 0;
-
     return res.status(200).json({
       success: true,
       data: {
         totalProcessedPickups,
         totalRecycledWeight,
         totalPaidToMembers,
-        totalProductsListed,
-        totalSales,
-        estimatedProfit,
+        // Marketplace aggregation is handled in the marketplace module
+        totalProductsListed: 0,
+        totalSales: 0,
+        estimatedProfit: 0,
       },
     });
   } catch (err) {

@@ -1,4 +1,9 @@
 const mongoose = require("mongoose");
+
+const QR_SECRET = process.env.QR_SECRET;
+if (!QR_SECRET) {
+  throw new Error("QR_SECRET environment variable is required");
+}
 const { Pickup } = require("../models/Pickup");
 const { DeliveryAgent } = require("../models/DeliveryAgent");
 const { User } = require("../models/User");
@@ -367,13 +372,11 @@ const completePickup = async (req, res) => {
 
     user.ecoPoints = Number(user.ecoPoints || 0) + Number(award);
 
-    if (user.role === "trial_member") {
-      user.streakCount = Number(user.streakCount || 0) + 1;
+    if (user.role === "citizen" && user.membershipStatus === "trial") {
+      user.streak = Number(user.streak || 0) + 1;
 
-      if (user.streakCount >= 5) {
-        user.role = "member";
-        user.membershipStatus = "active";
-        user.trialCompleted = true;
+      if (user.streak >= 5) {
+        user.membershipStatus = "member";
       }
     }
 
@@ -434,6 +437,42 @@ const getAllPickups = async (req, res) => {
   }
 };
 
+const crypto = require("crypto");
+const getPickupQrToken = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ success: false, message: "Invalid pickup ID" });
+    }
+    const pickup = await Pickup.findOne({ _id: id, user: req.user._id });
+    if (!pickup) {
+      return res.status(404).json({ success: false, message: "Pickup request not found" });
+    }
+    if (!pickup.assignedAgent) {
+      return res.status(400).json({ success: false, message: "QR verification is only available once an agent has been assigned." });
+    }
+
+    const expiry = Date.now() + 15 * 60 * 1000; // 15 mins expiry
+    const signature = crypto
+      .createHmac("sha256", QR_SECRET)
+      .update(`${pickup._id}:${pickup.assignedAgent}:${expiry}`)
+      .digest("hex");
+
+    return res.status(200).json({
+      success: true,
+      message: "QR verification payload generated successfully",
+      data: {
+        taskId: pickup._id,
+        agentId: pickup.assignedAgent,
+        expiry,
+        signature
+      }
+    });
+  } catch (err) {
+    return next(err);
+  }
+};
+
 module.exports = {
   createPickup,
   getMyPickups,
@@ -448,4 +487,5 @@ module.exports = {
   startPickup,
   completePickup,
   getAllPickups,
+  getPickupQrToken,
 };

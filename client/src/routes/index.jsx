@@ -21,7 +21,7 @@ import SupervisorRoutes from "@/routes/supervisorRoutes";
 import DeliveryRoutes from "@/routes/deliveryRoutes";
 import RecyclerRoutes from "@/routes/recyclerRoutes";
 import AdminLoginPage from "@/pages/admin/AdminLoginPage";
-import AdminDashboardPage from "@/pages/admin/AdminDashboardPage";
+import AdminRoutes from "@/routes/adminRoutes";
 
 export default function AppRoutes() {
   return (
@@ -40,10 +40,7 @@ export default function AppRoutes() {
       <Route path="admin-sowmya" element={<AdminLoginPage />} />
       <Route element={<AdminProtectedRoute />}>
         <Route path="admin-sowmya" element={<AdminLayout />}>
-          <Route path="dashboard" element={<AdminDashboardPage />} />
-          <Route path="users" element={<AdminDashboardPage />} />
-          <Route path="analytics" element={<AdminDashboardPage />} />
-          <Route path="settings" element={<AdminDashboardPage />} />
+          <Route path="*" element={<AdminRoutes />} />
         </Route>
       </Route>
 

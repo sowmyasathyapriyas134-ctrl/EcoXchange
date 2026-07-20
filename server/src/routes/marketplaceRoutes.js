@@ -10,13 +10,12 @@ const {
   getMySalesReport,
   getAllProducts,
   getProductById,
-  createOrder,
-  getMyOrders,
   approveProduct,
   rejectProduct,
   getAllOrders,
   getMarketplaceAnalytics,
 } = require("../controllers/marketplaceController");
+const { checkout, getMyOrders: getMyConsolidatedOrders } = require("../controllers/orderController");
 
 const marketplaceRouter = express.Router();
 
@@ -25,8 +24,8 @@ marketplaceRouter.get("/products", getAllProducts);
 marketplaceRouter.get("/products/:id", getProductById);
 
 // Citizen (Trial or Permanent Member)
-marketplaceRouter.post("/orders", protect, authorize("citizen", "admin"), createOrder);
-marketplaceRouter.get("/my-orders", protect, authorize("citizen", "admin"), getMyOrders);
+marketplaceRouter.post("/orders", protect, authorize("citizen", "admin"), checkout);
+marketplaceRouter.get("/my-orders", protect, authorize("citizen", "admin"), getMyConsolidatedOrders);
 
 // Recycler
 const productImagesMiddleware = uploadMultipleImages([

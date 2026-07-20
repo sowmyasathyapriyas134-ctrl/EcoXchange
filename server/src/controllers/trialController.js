@@ -1,6 +1,7 @@
 const { TrialSubmission } = require("../models/TrialSubmission");
 const { User } = require("../models/User");
 const { AuditLog } = require("../models/AuditLog");
+const { uploadToCloudinary } = require("../config/cloudinary");
 
 const createTrialSubmission = async (req, res, next) => {
   try {
@@ -163,8 +164,6 @@ const uploadTrialPhoto = async (req, res, next) => {
     if (!req.file) {
       return res.status(400).json({ success: false, message: "No file uploaded" });
     }
-
-    const { uploadToCloudinary } = require("../config/cloudinary");
     
     // In dev, if Cloudinary config is missing, return a beautiful demo URL
     if (!process.env.CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME === "Root") {

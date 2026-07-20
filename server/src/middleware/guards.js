@@ -73,8 +73,12 @@ const authorize = (...roles) => {
     }
 
     const userRoles = [req.user.role];
-    if (req.user.role === "trial_member" || req.user.role === "member") {
-      userRoles.push("citizen");
+    if (req.user.role === "citizen") {
+      if (req.user.membershipStatus === "trial") {
+        userRoles.push("trial_member");
+      } else if (req.user.membershipStatus === "member") {
+        userRoles.push("member");
+      }
     }
 
     const isAuthorized = roles.some((role) => userRoles.includes(role));

@@ -57,8 +57,7 @@ export default function TrialDashboardPage() {
       } else {
         throw new Error("Upload response did not contain a URL");
       }
-    } catch (err) {
-      console.error(err);
+    } catch {
       toast.error("Failed to submit verification proof");
     } finally {
       setSubmitting(false);

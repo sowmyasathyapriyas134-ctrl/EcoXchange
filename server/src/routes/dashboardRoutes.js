@@ -9,7 +9,7 @@ const {
 
 const router = express.Router();
 
-router.get("/citizen", protect, authorize("citizen"), getCitizenDashboard);
+router.get("/citizen", protect, authorize("citizen", "trial_member", "member"), getCitizenDashboard);
 router.get("/recycler", protect, authorize("recycler"), getRecyclerDashboard);
 router.get("/supervisor", protect, authorize("supervisor"), getSupervisorDashboard);
 router.get("/admin", protect, authorize("admin"), getAdminDashboard);

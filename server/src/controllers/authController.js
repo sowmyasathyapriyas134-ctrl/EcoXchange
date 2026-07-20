@@ -37,8 +37,7 @@ const sendOtp = async (req, res, next) => {
     const otpCode = generateOtp();
     await Otp.create({ phoneNumber: normalized, otp: otpCode });
 
-    // In a real app, send via SMS gateway. For now, log it.
-    console.log(`[OTP] Sent to ${normalized}: ${otpCode}`);
+
 
     return res.status(200).json({
       success: true,
@@ -107,7 +106,7 @@ const verifyOtp = async (req, res, next) => {
 
 const registerUser = async (req, res, next) => {
   try {
-    const { fullName, email, password, address, phoneNumber, role } = req.body;
+    const { fullName, email, password, address, phoneNumber, role, location } = req.body;
     const normalized = normalizePhone(phoneNumber) || phoneNumber;
 
     const existingEmail = await findUserByEmail(email);
@@ -123,7 +122,8 @@ const registerUser = async (req, res, next) => {
       email,
       password,
       phoneNumber: normalized,
-      address: address || "",
+      address: address || (location?.formattedAddress) || "",
+      location: location || {},
       role: mappedRole,
       membershipStatus: "trial",
       streak: 0,
@@ -182,14 +182,8 @@ const loginUser = async (req, res, next) => {
   }
 };
 
-const forgotPassword = async (req, res, next) => {
-  try {
-    // Re-use sendOtp flow for forgot password
-    return sendOtp(req, res, next);
-  } catch (err) {
-    return next(err);
-  }
-};
+// forgotPassword reuses the same OTP flow as login
+const forgotPassword = sendOtp;
 
 const resetPassword = async (req, res, next) => {
   try {

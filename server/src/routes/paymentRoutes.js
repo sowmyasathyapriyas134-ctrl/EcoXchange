@@ -137,7 +137,6 @@ router.post("/webhook", async (req, res) => {
 
     return res.status(400).json({ success: false, message: "Invalid payload" });
   } catch (err) {
-    console.error("Webhook error:", err);
     return res.status(500).json({ success: false, message: "Server error" });
   }
 });

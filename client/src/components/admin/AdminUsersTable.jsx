@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { ShieldOff, ShieldCheck, Trash2, UserCog, UserPlus } from "lucide-react";
-import { useAdminUsers, useSuspendUser, useRestoreUser, useDeleteUser, useUpdateUserRole } from "@/hooks/queries/useAdmin";
+import { useAdminUsers, useSuspendUser, useRestoreUser, useDeleteUser } from "@/hooks/queries/useAdmin";
 import { useAdminStore } from "@/store/admin.store";
 import { DataTable } from "@/components/common/DataTable";
 import { SearchBar } from "@/components/common/SearchBar";
@@ -52,7 +52,6 @@ export function AdminUsersTable({ roleFilter = null, emptyLabel = "No users foun
   const suspendMutation = useSuspendUser();
   const restoreMutation = useRestoreUser();
   const deleteMutation = useDeleteUser();
-  const updateRoleMutation = useUpdateUserRole();
 
   const [confirmDelete, setConfirmDelete] = useState(null); // user object
   const [confirmSuspend, setConfirmSuspend] = useState(null);

@@ -84,6 +84,37 @@ export function SocketProvider({ children }) {
       invalidateNotifications(qc);
     };
 
+    // Admin Listeners
+    const onAdminUserUpdate = () => {
+      qc.invalidateQueries({ queryKey: queryKeys.admin.users });
+    };
+    const onAdminPickupUpdate = () => {
+      qc.invalidateQueries({ queryKey: queryKeys.admin.pickups });
+    };
+    const onAdminOrderUpdate = () => {
+      qc.invalidateQueries({ queryKey: queryKeys.admin.marketplaceOrders });
+    };
+    const onAdminPaymentUpdate = () => {
+      qc.invalidateQueries({ queryKey: queryKeys.admin.revenueSummary });
+      qc.invalidateQueries({ queryKey: queryKeys.admin.revenueHistory });
+      qc.invalidateQueries({ queryKey: queryKeys.admin.revenueAnalytics });
+    };
+    const onAdminWalletUpdate = () => {
+      qc.invalidateQueries({ queryKey: queryKeys.admin.walletLedger });
+    };
+    const onAdminRewardUpdate = () => {
+      qc.invalidateQueries({ queryKey: queryKeys.admin.rewards });
+      qc.invalidateQueries({ queryKey: queryKeys.admin.rewardsLeaderboard });
+    };
+    const onAdminAnalyticsUpdate = () => {
+      qc.invalidateQueries({ queryKey: queryKeys.admin.analyticsOverview });
+      qc.invalidateQueries({ queryKey: queryKeys.admin.wasteByType });
+      qc.invalidateQueries({ queryKey: queryKeys.admin.monthlyTrends });
+    };
+    const onAdminNotificationUpdate = () => {
+      qc.invalidateQueries({ queryKey: queryKeys.admin.notifications });
+    };
+
     socket.on("notification", onNotification);
     socket.on("pickup_update", onPickupUpdate);
     socket.on("order_update", onOrderUpdate);
@@ -97,6 +128,16 @@ export function SocketProvider({ children }) {
     socket.on("inventory:update", onRecyclerInventoryUpdate);
     socket.on("marketplace:update", onRecyclerMarketplaceUpdate);
     socket.on("notification:update", onRecyclerNotificationUpdate);
+
+    // Admin Listeners registration
+    socket.on("user:update", onAdminUserUpdate);
+    socket.on("pickup:update", onAdminPickupUpdate);
+    socket.on("order:update", onAdminOrderUpdate);
+    socket.on("payment:update", onAdminPaymentUpdate);
+    socket.on("wallet:update", onAdminWalletUpdate);
+    socket.on("reward:update", onAdminRewardUpdate);
+    socket.on("analytics:update", onAdminAnalyticsUpdate);
+    socket.on("notification:update", onAdminNotificationUpdate);
 
     return () => {
       socket.off("notification", onNotification);
@@ -112,6 +153,16 @@ export function SocketProvider({ children }) {
       socket.off("inventory:update", onRecyclerInventoryUpdate);
       socket.off("marketplace:update", onRecyclerMarketplaceUpdate);
       socket.off("notification:update", onRecyclerNotificationUpdate);
+
+      // Admin Listeners cleanup
+      socket.off("user:update", onAdminUserUpdate);
+      socket.off("pickup:update", onAdminPickupUpdate);
+      socket.off("order:update", onAdminOrderUpdate);
+      socket.off("payment:update", onAdminPaymentUpdate);
+      socket.off("wallet:update", onAdminWalletUpdate);
+      socket.off("reward:update", onAdminRewardUpdate);
+      socket.off("analytics:update", onAdminAnalyticsUpdate);
+      socket.off("notification:update", onAdminNotificationUpdate);
     };
   }, [isAuthenticated, token, qc]);
 

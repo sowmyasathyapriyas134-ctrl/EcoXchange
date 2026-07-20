@@ -25,14 +25,33 @@ const getCitizenDashboard = async (req, res, next) => {
 
 const getRecyclerDashboard = async (req, res, next) => {
   try {
+    const { Pickup } = require("../models/Pickup");
+    const { RecyclerPayment } = require("../models/RecyclerPayment");
+    
     const products = await Product.countDocuments({ recycler: req.user._id });
     const activeProducts = await Product.countDocuments({ recycler: req.user._id, isActive: true });
     
+    // Recycler metrics
+    const [incomingWaste, processingQueue, completedBatches, payments] = await Promise.all([
+      Pickup.countDocuments({ status: "completed", recyclingStatus: "pending" }),
+      Pickup.countDocuments({ recycler: req.user._id, recyclingStatus: "accepted" }),
+      Pickup.countDocuments({ recycler: req.user._id, recyclingStatus: "processed" }),
+      RecyclerPayment.find({ recycler: req.user._id }),
+    ]);
+
+    const totalRevenue = payments.reduce((sum, p) => sum + Number(p.totalAmount || 0), 0);
+    const totalWeightProcessed = payments.reduce((sum, p) => sum + Number(p.weight || 0), 0);
+
     return res.status(200).json({
       success: true,
       data: {
         totalProductsListed: products,
         activeProducts,
+        incomingWaste,
+        processingQueue,
+        completedBatches,
+        totalRevenue,
+        totalWeightProcessed,
       }
     });
   } catch (err) {
@@ -42,15 +61,34 @@ const getRecyclerDashboard = async (req, res, next) => {
 
 const getSupervisorDashboard = async (req, res, next) => {
   try {
-    const pendingSubmissions = await TrialSubmission.countDocuments({ status: "pending_verification" });
-    const approvedSubmissions = await TrialSubmission.countDocuments({ status: "approved", verifiedBy: req.user._id });
-    
+    const { Pickup } = require("../models/Pickup");
+    const { DeliveryAgent } = require("../models/DeliveryAgent");
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const [
+      pendingVerifications,
+      approvedByMe,
+      todayCollections,
+      assignedPickups,
+      activeAgents,
+    ] = await Promise.all([
+      Pickup.countDocuments({ status: "completed", verificationStatus: "pending" }),
+      Pickup.countDocuments({ verificationStatus: "verified", verifiedBy: req.user._id }),
+      Pickup.countDocuments({ createdAt: { $gte: today } }),
+      Pickup.countDocuments({ status: { $in: ["assigned", "accepted", "in_progress"] } }),
+      DeliveryAgent.countDocuments({ availabilityStatus: { $in: ["available", "busy"] } }),
+    ]);
+
     return res.status(200).json({
       success: true,
       data: {
-        pendingVerifications: pendingSubmissions,
-        approvedByMe: approvedSubmissions,
-      }
+        pendingVerifications,
+        approvedByMe,
+        todayCollections,
+        assignedPickups,
+        activeAgents,
+      },
     });
   } catch (err) {
     return next(err);

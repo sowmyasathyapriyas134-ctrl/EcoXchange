@@ -136,14 +136,14 @@ const verifyMembershipPayment = async (req, res, next) => {
     );
 
     if (!isValid) {
-      const failedPayment = await Payment.findOneAndUpdate(
+      const { _id: failedPaymentId } = (await Payment.findOneAndUpdate(
         { razorpayOrderId },
         {
           razorpayPaymentId,
           status: "failed",
         },
         { new: true }
-      );
+      )) || {};
 
       if (req.user?._id) {
         await createNotification({
@@ -156,7 +156,7 @@ const verifyMembershipPayment = async (req, res, next) => {
           metadata: {
             razorpayOrderId,
             razorpayPaymentId,
-            paymentId: failedPayment?._id,
+            paymentId: failedPaymentId,
           },
         });
       }
@@ -210,16 +210,11 @@ const verifyMembershipPayment = async (req, res, next) => {
 
     // Update user membership
     const updatePayload = {
-      membershipStatus: "active",
+      membershipStatus: "member",
       membershipPlan: plan.name,
       membershipStartDate: start,
       membershipEndDate: end,
     };
-
-    // Convert trial users to permanent members if needed
-    if (req.user.role === "trial") {
-      updatePayload.role = "member";
-    }
 
     const updatedUser = await UserModel.findByIdAndUpdate(
       req.user._id,

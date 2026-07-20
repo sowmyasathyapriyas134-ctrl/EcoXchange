@@ -19,7 +19,7 @@ const getMyWallet = async (req, res, next) => {
 const requestWithdrawal = async (req, res, next) => {
   try {
     const modelName = req.user.constructor.modelName;
-    if (modelName === "User" && req.user.role === "trial_member") {
+    if (modelName === "User" && req.user.membershipStatus === "trial") {
       return res.status(403).json({ success: false, message: "Trial users cannot withdraw cash" });
     }
     const min = Number(await getSetting("minWithdrawalAmount", 100));
