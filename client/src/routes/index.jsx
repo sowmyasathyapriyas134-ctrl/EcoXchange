@@ -10,6 +10,8 @@ import LandingPage, { RolesPage } from "@/pages/public/LandingPage";
 import LoginPage from "@/pages/auth/LoginPage";
 import VerifyOtpPage from "@/pages/auth/VerifyOtpPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
+import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
+import ResetPasswordPage from "@/pages/auth/ResetPasswordPage";
 import NotFoundPage from "@/pages/NotFoundPage";
 import UnauthorizedPage from "@/pages/UnauthorizedPage";
 import ForbiddenPage from "@/pages/ForbiddenPage";
@@ -23,6 +25,8 @@ import RecyclerRoutes from "@/routes/recyclerRoutes";
 import AdminLoginPage from "@/pages/admin/AdminLoginPage";
 import AdminRoutes from "@/routes/adminRoutes";
 
+import MembershipUpgradePage from "@/pages/member/MembershipUpgradePage";
+
 export default function AppRoutes() {
   return (
     <Routes>
@@ -35,6 +39,8 @@ export default function AppRoutes() {
         <Route path="login" element={<LoginPage />} />
         <Route path="verify-otp" element={<VerifyOtpPage />} />
         <Route path="register" element={<RegisterPage />} />
+        <Route path="forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="reset-password" element={<ResetPasswordPage />} />
       </Route>
 
       <Route path="admin-sowmya" element={<AdminLoginPage />} />
@@ -46,11 +52,19 @@ export default function AppRoutes() {
 
       <Route element={<PrivateRoute />}>
         <Route element={<RoleLayout />}>
+          <Route element={<RoleRoute allowedRoles={["trial_member", "member"]} />}>
+            <Route path="membership/upgrade" element={<MembershipUpgradePage />} />
+          </Route>
           <Route element={<RoleRoute allowedRoles={["trial_member"]} />}>
+            <Route index element={<TrialDashboardPage />} />
+            <Route path="trial" element={<TrialDashboardPage />} />
             <Route path="trial/dashboard" element={<TrialDashboardPage />} />
+            <Route path="trial/*" element={<TrialDashboardPage />} />
           </Route>
           <Route element={<RoleRoute allowedRoles={["member"]} />}>
             <Route path="member/*" element={<MemberRoutes />} />
+            <Route path="tracking" element={<MemberRoutes />} />
+            <Route path="tracking/:id" element={<MemberRoutes />} />
           </Route>
           <Route element={<RoleRoute allowedRoles={["supervisor"]} />}>
             <Route path="supervisor/*" element={<SupervisorRoutes />} />

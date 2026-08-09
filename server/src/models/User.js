@@ -17,7 +17,7 @@ const userSchema = new mongoose.Schema(
       minlength: 6,
       select: false,
     },
-    phoneNumber: { type: String, required: true, unique: true, index: true },
+    phoneNumber: { type: String, required: true, unique: true },
     firebaseUid: { type: String, default: "", index: true, sparse: true },
     qrCodeData: { type: String, default: "" },
     address: { type: String, default: "" },
@@ -52,6 +52,13 @@ const userSchema = new mongoose.Schema(
     membershipStartDate: { type: Date },
     membershipEndDate: { type: Date },
     membershipPlan: { type: String, default: "" },
+    membershipEligibility: {
+      isEligible: { type: Boolean, default: false },
+      eligibleAt: { type: Date },
+    },
+    membershipActivatedAt: { type: Date },
+    membershipPaymentId: { type: String, default: "" },
+    binSize: { type: String, enum: ["small", "medium", "large", ""], default: "" },
   },
   { timestamps: true },
 );

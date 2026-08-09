@@ -49,4 +49,12 @@ export const supervisorApi = {
   getAnalytics: () => apiClient.get("/supervisor/analytics"),
   // /api/analytics/supervisor — ecoPoints scalar (pre-existing)
   getAnalyticsOverview: () => apiClient.get("/analytics/supervisor"),
+
+  // ── Delivery Agent Management ─────────────────────────────────────────────
+  createDeliveryAgent: (payload) =>
+    apiClient.post("/supervisor/delivery-agents", payload),
+  updateDeliveryAgent: (id, payload) =>
+    apiClient.patch(`/supervisor/delivery-agents/${id}`, payload),
+  updateDeliveryAgentStatus: (id, payload) =>
+    apiClient.patch(`/supervisor/delivery-agents/${id}/status`, payload),
 };

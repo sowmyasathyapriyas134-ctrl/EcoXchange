@@ -2,12 +2,11 @@ const mongoose = require("mongoose");
 
 const walletSchema = new mongoose.Schema(
   {
-    ownerId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
+    ownerId: { type: mongoose.Schema.Types.ObjectId, required: true },
     ownerModel: {
       type: String,
       enum: ["User", "Recycler", "DeliveryAgent", "Admin", "Supervisor"],
       required: true,
-      index: true,
     },
     availableBalance: { type: Number, default: 0 },
     pendingBalance: { type: Number, default: 0 },

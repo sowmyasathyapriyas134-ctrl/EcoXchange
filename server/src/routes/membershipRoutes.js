@@ -1,45 +1,31 @@
 const express = require("express");
-const { protect } = require("../middleware/authMiddleware");
-const { authorizeRoles } = require("../middleware/roleMiddleware");
-
+const { protect } = require("../middleware/guards");
+const { requireAdmin } = require("../middleware/requireAdmin");
 const {
-  listPlans,
   createMembershipOrder,
   verifyMembershipPayment,
-  getMyMembership,
+  getMembershipStatus,
+  getUserToolkit,
+  getUserQRCode,
+  getAdminMemberships,
+  updateAdminToolkitStatus,
+  regenerateUserQRAdmin,
 } = require("../controllers/membershipController");
 
-const membershipRouter = express.Router();
+const router = express.Router();
 
-/**
- * Public Route
- * Anyone can view available membership plans.
- */
-membershipRouter.get("/plans", listPlans);
+// Public / Protected Member Endpoints
+router.use(protect);
 
-/**
- * Protected Routes
- * Only trial members and members can purchase and view memberships.
- */
-membershipRouter.post(
-  "/create-order",
-  protect,
-  authorizeRoles("trial_member", "member"),
-  createMembershipOrder
-);
+router.post("/create-order", createMembershipOrder);
+router.post("/verify-payment", verifyMembershipPayment);
+router.get("/status", getMembershipStatus);
+router.get("/toolkit", getUserToolkit);
+router.get("/qrcode", getUserQRCode);
 
-membershipRouter.post(
-  "/verify-payment",
-  protect,
-  authorizeRoles("trial_member", "member"),
-  verifyMembershipPayment
-);
+// Admin Management Endpoints
+router.get("/admin/list", requireAdmin, getAdminMemberships);
+router.patch("/admin/:id/toolkit-status", requireAdmin, updateAdminToolkitStatus);
+router.post("/admin/:userId/regenerate-qr", requireAdmin, regenerateUserQRAdmin);
 
-membershipRouter.get(
-  "/my-membership",
-  protect,
-  authorizeRoles("trial_member", "member"),
-  getMyMembership
-);
-
-module.exports = { membershipRoutes: membershipRouter };
+module.exports = { membershipRoutes: router };

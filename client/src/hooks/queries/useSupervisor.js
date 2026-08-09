@@ -211,3 +211,32 @@ export function useRejectVerification() {
       toast.error(err?.response?.data?.message || "Failed to reject verification"),
   });
 }
+
+/** Create a new delivery agent (supervisor portal) */
+export function useCreateDeliveryAgent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload) => supervisorApi.createDeliveryAgent(payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: supervisorKeys.agents });
+      toast.success("Delivery agent created successfully");
+    },
+    onError: (err) =>
+      toast.error(err?.response?.data?.message || "Failed to create delivery agent"),
+  });
+}
+
+/** Update delivery agent suspension status */
+export function useUpdateDeliveryAgentStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...payload }) =>
+      supervisorApi.updateDeliveryAgentStatus(id, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: supervisorKeys.agents });
+      toast.success("Agent status updated");
+    },
+    onError: (err) =>
+      toast.error(err?.response?.data?.message || "Failed to update agent status"),
+  });
+}

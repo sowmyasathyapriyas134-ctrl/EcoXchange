@@ -18,4 +18,13 @@ const findUserById = async (id, modelName) => {
   return Model.findById(id).select("-password");
 };
 
-module.exports = { findUserById };
+const findUserByIdAllCollections = async (id) => {
+  for (const key of Object.keys(registryByModelName)) {
+    const Model = registryByModelName[key];
+    const doc = await Model.findById(id).select("-password");
+    if (doc) return { doc, modelName: key };
+  }
+  return null;
+};
+
+module.exports = { findUserById, findUserByIdAllCollections };

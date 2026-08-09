@@ -1,5 +1,6 @@
-import { lazy } from "react";
+import { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
+import { DashboardSkeleton } from "@/components/loading/DashboardSkeleton";
 
 const SupervisorDashboardPage = lazy(() =>
   import("@/pages/supervisor/SupervisorDashboardPage")
@@ -22,14 +23,16 @@ const SupervisorAnalyticsPage = lazy(() =>
 
 export default function SupervisorRoutes() {
   return (
-    <Routes>
-      <Route index element={<SupervisorDashboardPage />} />
-      <Route path="dashboard" element={<SupervisorDashboardPage />} />
-      <Route path="agents" element={<SupervisorAgentsPage />} />
-      <Route path="assignments" element={<SupervisorAssignmentsPage />} />
-      <Route path="verifications" element={<SupervisorVerificationsPage />} />
-      <Route path="map" element={<SupervisorMapPage />} />
-      <Route path="analytics" element={<SupervisorAnalyticsPage />} />
-    </Routes>
+    <Suspense fallback={<DashboardSkeleton />}>
+      <Routes>
+        <Route index element={<SupervisorDashboardPage />} />
+        <Route path="dashboard" element={<SupervisorDashboardPage />} />
+        <Route path="agents" element={<SupervisorAgentsPage />} />
+        <Route path="assignments" element={<SupervisorAssignmentsPage />} />
+        <Route path="verifications" element={<SupervisorVerificationsPage />} />
+        <Route path="map" element={<SupervisorMapPage />} />
+        <Route path="analytics" element={<SupervisorAnalyticsPage />} />
+      </Routes>
+    </Suspense>
   );
 }

@@ -12,6 +12,9 @@ const {
   verifyPickup,
   rejectPickupVerification,
   getSupervisorAnalytics,
+  createDeliveryAgentBySupervisor,
+  updateDeliveryAgentBySupervisor,
+  updateDeliveryAgentStatusBySupervisor,
 } = require("../controllers/supervisorController");
 
 const router = express.Router();
@@ -31,6 +34,10 @@ router.get("/users-by-area", getUsersByArea);
 router.get("/agents", getAgents);
 router.get("/agent-locations", getAgentLocations);
 router.get("/agents/:id/history", getAgentHistory);
+
+router.post("/delivery-agents", createDeliveryAgentBySupervisor);
+router.patch("/delivery-agents/:id", updateDeliveryAgentBySupervisor);
+router.patch("/delivery-agents/:id/status", updateDeliveryAgentStatusBySupervisor);
 
 // ── Pickups (all statuses, filterable) ───────────────────────────────────────
 // NOTE: For assign/reassign use PATCH /api/pickups/:id/assign-agent (pickupRoutes)

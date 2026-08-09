@@ -17,15 +17,16 @@ export default function AdminDeliveryAgentsPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!name || !email || !phone) {
-      toast.error("Please fill in all fields");
+    if (!name || !email || !phone || !password) {
+      toast.error("Please fill in all required fields");
       return;
     }
     createMutation.mutate(
-      { name, email, phone },
+      { name, email, phone, password },
       {
         onSuccess: () => {
           toast.success("Delivery Agent created successfully");
@@ -33,6 +34,7 @@ export default function AdminDeliveryAgentsPage() {
           setName("");
           setEmail("");
           setPhone("");
+          setPassword("");
           refetch();
         },
       }
@@ -86,6 +88,17 @@ export default function AdminDeliveryAgentsPage() {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="+919876543210"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="agent-password">Password *</Label>
+              <Input
+                id="agent-password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Min 8 characters"
                 required
               />
             </div>

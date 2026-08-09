@@ -38,6 +38,16 @@ const deliveryAgentSchema = new mongoose.Schema(
     isSuspended: { type: Boolean, default: false },
     suspendedAt: { type: Date },
     suspendedReason: { type: String },
+    createdBySupervisor: {
+      type: require("mongoose").Schema.Types.ObjectId,
+      ref: "Supervisor",
+      default: null,
+    },
+    assignedSupervisor: {
+      type: require("mongoose").Schema.Types.ObjectId,
+      ref: "Supervisor",
+      default: null,
+    },
   },
   { timestamps: true },
 );

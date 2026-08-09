@@ -2,8 +2,8 @@ const mongoose = require("mongoose");
 
 const ledgerEntrySchema = new mongoose.Schema(
   {
-    transactionId: { type: String, required: true, unique: true, index: true },
-    userId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
+    transactionId: { type: String, required: true, unique: true },
+    userId: { type: mongoose.Schema.Types.ObjectId, required: true },
     userModel: { type: String, required: true },
     amount: { type: Number, required: true },
     currency: { type: String, default: "INR" },
@@ -24,7 +24,6 @@ const ledgerEntrySchema = new mongoose.Schema(
         "adjustment",
       ],
       required: true,
-      index: true,
     },
     status: {
       type: String,

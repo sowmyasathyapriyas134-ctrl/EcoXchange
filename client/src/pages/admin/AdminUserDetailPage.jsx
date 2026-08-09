@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import toast from "react-hot-toast";
-import { useAdminUser, useUpdateUserRole, useSuspendUser, useRestoreUser } from "@/hooks/queries/useAdmin";
+import { useAdminUser, useUpdateUserRole, useSuspendUser, useRestoreUser, usePromoteUser } from "@/hooks/queries/useAdmin";
 import { PageHeader } from "@/components/common/PageHeader";
 import { ApiError } from "@/components/errors/ApiError";
 import { Button } from "@/components/ui/button";
@@ -20,9 +20,11 @@ export default function AdminUserDetailPage() {
   const updateRoleMutation = useUpdateUserRole();
   const suspendMutation = useSuspendUser();
   const restoreMutation = useRestoreUser();
+  const promoteMutation = usePromoteUser();
 
   const [role, setRole] = useState("");
   const [suspendReason, setSuspendReason] = useState("");
+  const [promoBinSize, setPromoBinSize] = useState("");
 
   if (isLoading) return <div className="py-12 text-center text-muted-foreground">Loading user details…</div>;
   if (isError || !user) {
@@ -67,6 +69,20 @@ export default function AdminUserDetailPage() {
       {
         onSuccess: () => {
           toast.success("User restored");
+          refetch();
+        },
+      }
+    );
+  };
+
+  const handlePromote = () => {
+    if (!promoBinSize) return;
+    promoteMutation.mutate(
+      { id, binSize: promoBinSize },
+      {
+        onSuccess: () => {
+          toast.success("Trial Member promoted to Permanent successfully!");
+          setPromoBinSize("");
           refetch();
         },
       }
@@ -164,6 +180,41 @@ export default function AdminUserDetailPage() {
                 </Button>
               </CardContent>
             </Card>
+
+            {userData.role === "trial_member" && (
+              <Card className="border-emerald-500/20 bg-emerald-500/5">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-base text-emerald-600 dark:text-emerald-400">
+                    <Shield className="h-4 w-4" />
+                    Trial Promotion
+                  </CardTitle>
+                  <CardDescription>Promote this Trial Member to a Permanent Member</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="bin-size-select">Select Bin Size *</Label>
+                    <select
+                      id="bin-size-select"
+                      className="w-full h-10 rounded-md border border-slate-700 bg-slate-800 text-slate-100 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      value={promoBinSize}
+                      onChange={(e) => setPromoBinSize(e.target.value)}
+                    >
+                      <option value="">Choose Size...</option>
+                      <option value="small">Small</option>
+                      <option value="medium">Medium</option>
+                      <option value="large">Large</option>
+                    </select>
+                  </div>
+                  <Button
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
+                    disabled={promoteMutation.isPending || !promoBinSize}
+                    onClick={handlePromote}
+                  >
+                    {promoteMutation.isPending ? "Promoting..." : "Promote to Permanent"}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
 
             <Card>
               <CardHeader>

@@ -1,5 +1,6 @@
-import { lazy } from "react";
+import { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
+import { DashboardSkeleton } from "@/components/loading/DashboardSkeleton";
 
 const DeliveryDashboardPage = lazy(() => import("@/pages/delivery/DeliveryDashboardPage"));
 const DeliveryTasksPage = lazy(() => import("@/pages/delivery/DeliveryTasksPage"));
@@ -11,15 +12,17 @@ const DeliveryHistoryPage = lazy(() => import("@/pages/delivery/DeliveryHistoryP
 
 export default function DeliveryRoutes() {
   return (
-    <Routes>
-      <Route index element={<DeliveryDashboardPage />} />
-      <Route path="dashboard" element={<DeliveryDashboardPage />} />
-      <Route path="tasks" element={<DeliveryTasksPage />} />
-      <Route path="tasks/:id" element={<DeliveryTaskDetailPage />} />
-      <Route path="map" element={<DeliveryMapPage />} />
-      <Route path="scanner" element={<DeliveryScannerPage />} />
-      <Route path="proofs" element={<DeliveryProofsPage />} />
-      <Route path="history" element={<DeliveryHistoryPage />} />
-    </Routes>
+    <Suspense fallback={<DashboardSkeleton />}>
+      <Routes>
+        <Route index element={<DeliveryDashboardPage />} />
+        <Route path="dashboard" element={<DeliveryDashboardPage />} />
+        <Route path="tasks" element={<DeliveryTasksPage />} />
+        <Route path="tasks/:id" element={<DeliveryTaskDetailPage />} />
+        <Route path="map" element={<DeliveryMapPage />} />
+        <Route path="scanner" element={<DeliveryScannerPage />} />
+        <Route path="proofs" element={<DeliveryProofsPage />} />
+        <Route path="history" element={<DeliveryHistoryPage />} />
+      </Routes>
+    </Suspense>
   );
 }

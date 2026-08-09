@@ -1,4 +1,4 @@
-const { User } = require("../models/User");
+const { findUserByIdAllCollections } = require("../utils/findUserById");
 const { canManageRole } = require("../utils/canManageRole");
 
 const canManageUser = () => {
@@ -13,17 +13,20 @@ const canManageUser = () => {
         });
       }
 
-      const targetUser = await User.findById(targetUserId);
+      const result = await findUserByIdAllCollections(targetUserId);
 
-      if (!targetUser) {
+      if (!result || !result.doc) {
         return res.status(404).json({
           success: false,
           message: "User not found",
         });
       }
 
+      const targetUser = result.doc;
+
       if (req.user?.role === "admin") {
         req.targetUser = targetUser;
+        req.targetUserModelName = result.modelName;
         return next();
       }
 
@@ -46,6 +49,7 @@ const canManageUser = () => {
       }
 
       req.targetUser = targetUser;
+      req.targetUserModelName = result.modelName;
       return next();
     } catch (err) {
       return next(err);

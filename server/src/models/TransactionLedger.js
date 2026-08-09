@@ -26,12 +26,10 @@ const ledgerSchema = new mongoose.Schema(
     user: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
-      index: true,
     },
     timestamp: {
       type: Date,
       default: Date.now,
-      index: true,
     },
   },
   { timestamps: true }

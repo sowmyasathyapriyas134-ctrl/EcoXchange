@@ -5,7 +5,6 @@ const notificationSchema = new mongoose.Schema(
     recipient: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
-      index: true,
     },
     recipientModel: {
       type: String,
@@ -45,7 +44,7 @@ const notificationSchema = new mongoose.Schema(
       ],
     },
 
-    isRead: { type: Boolean, default: false, index: true },
+    isRead: { type: Boolean, default: false },
 
     metadata: { type: mongoose.Schema.Types.Mixed, default: {} },
   },

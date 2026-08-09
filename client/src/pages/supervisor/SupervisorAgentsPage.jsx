@@ -1,11 +1,20 @@
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { PageHeader } from "@/components/common/PageHeader";
 import { StatCard } from "@/components/common/StatCard";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useSupervisorAgents, useSupervisorAgentHistory } from "@/hooks/queries/useSupervisor";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { useSupervisorAgents, useSupervisorAgentHistory, useCreateDeliveryAgent } from "@/hooks/queries/useSupervisor";
 import { LiveMarkerMap } from "@/components/maps/GoogleMap";
 import {
   Users,
@@ -19,6 +28,7 @@ import {
   Wifi,
   WifiOff,
   Circle,
+  UserPlus,
 } from "lucide-react";
 
 const AVAILABILITY_CONFIG = {
@@ -173,9 +183,134 @@ function AgentCard({ agent }) {
   );
 }
 
+function CreateAgentModal({ open, onClose }) {
+  const { register, handleSubmit, reset, formState: { errors } } = useForm();
+  const createMutation = useCreateDeliveryAgent();
+
+  const onSubmit = async (values) => {
+    await createMutation.mutateAsync({
+      name: values.name,
+      email: values.email,
+      phone: values.phone.startsWith("+91") ? values.phone : `+91${values.phone}`,
+      password: values.password,
+      vehicleType: values.vehicleType || "",
+      vehicleNumber: values.vehicleNumber || "",
+      employeeId: values.employeeId || "",
+    });
+    reset();
+    onClose();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Add Delivery Agent</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label htmlFor="agent-name">Full Name *</Label>
+              <Input
+                id="agent-name"
+                placeholder="Ravi Kumar"
+                {...register("name", { required: "Name is required" })}
+              />
+              {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="agent-email">Email *</Label>
+              <Input
+                id="agent-email"
+                type="email"
+                placeholder="agent@eco.in"
+                {...register("email", { required: "Email is required" })}
+              />
+              {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label htmlFor="agent-phone">Phone *</Label>
+              <div className="flex">
+                <span className="inline-flex items-center px-2.5 rounded-l-md border border-r-0 border-input bg-muted text-muted-foreground text-sm">+91</span>
+                <Input
+                  id="agent-phone"
+                  inputMode="tel"
+                  placeholder="9876543210"
+                  className="rounded-l-none"
+                  {...register("phone", {
+                    required: "Phone is required",
+                    pattern: { value: /^\d{10}$/, message: "Enter 10 digits" },
+                  })}
+                />
+              </div>
+              {errors.phone && <p className="text-xs text-destructive">{errors.phone.message}</p>}
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="agent-password">Password *</Label>
+              <Input
+                id="agent-password"
+                type="password"
+                placeholder="Min 8 chars"
+                {...register("password", {
+                  required: "Password is required",
+                  minLength: { value: 8, message: "Min 8 characters" },
+                })}
+              />
+              {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label htmlFor="agent-vehicle-type">Vehicle Type</Label>
+              <Input
+                id="agent-vehicle-type"
+                placeholder="Bike / Van"
+                {...register("vehicleType")}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="agent-vehicle-no">Vehicle Number</Label>
+              <Input
+                id="agent-vehicle-no"
+                placeholder="TN01AB1234"
+                {...register("vehicleNumber")}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <Label htmlFor="agent-employee-id">Employee ID</Label>
+            <Input
+              id="agent-employee-id"
+              placeholder="EMP-001"
+              {...register("employeeId")}
+            />
+          </div>
+
+          <DialogFooter className="pt-2">
+            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+            <Button
+              type="submit"
+              className="bg-emerald-600 hover:bg-emerald-700"
+              disabled={createMutation.isPending}
+            >
+              {createMutation.isPending ? "Creating..." : "Create Agent"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function SupervisorAgentsPage() {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const { data, isLoading, isError, refetch } = useSupervisorAgents();
   const agents = data?.data ?? [];
@@ -200,10 +335,25 @@ export default function SupervisorAgentsPage() {
         title="Delivery Agents"
         description="Monitor agent availability, GPS, and task performance"
         actions={
-          <Button size="sm" variant="outline" onClick={() => refetch()}>
-            Refresh
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => refetch()}>
+              Refresh
+            </Button>
+            <Button
+              size="sm"
+              className="bg-emerald-600 hover:bg-emerald-700 flex items-center gap-1.5"
+              onClick={() => setShowCreateModal(true)}
+            >
+              <UserPlus className="h-4 w-4" />
+              Add Agent
+            </Button>
+          </div>
         }
+      />
+
+      <CreateAgentModal
+        open={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
       />
 
       {/* Stats row */}
@@ -260,6 +410,13 @@ export default function SupervisorAgentsPage() {
           <CardContent className="py-12 text-center space-y-2">
             <Users className="h-10 w-10 mx-auto opacity-30" />
             <p className="text-sm text-muted-foreground">No agents match your search</p>
+            <Button
+              size="sm"
+              className="mt-2 bg-emerald-600 hover:bg-emerald-700"
+              onClick={() => setShowCreateModal(true)}
+            >
+              <UserPlus className="h-4 w-4 mr-1.5" /> Add First Agent
+            </Button>
           </CardContent>
         </Card>
       ) : (
