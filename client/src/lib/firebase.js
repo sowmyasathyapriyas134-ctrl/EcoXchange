@@ -1,14 +1,13 @@
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+/**
+ * firebase.js — STUB
+ *
+ * Firebase has been removed from EcoXchange.
+ * Authentication is now handled entirely by the local backend:
+ *   Email + Password  →  POST /api/auth/login
+ *   Phone OTP         →  POST /api/auth/send-otp + /api/auth/verify-otp
+ *
+ * This file is kept to prevent import errors from any code that has not yet
+ * been migrated. It exports null-safe stubs.
+ */
 
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-};
-
-const app = initializeApp(firebaseConfig);
-export const firebaseAuth = getAuth(app);
+export const firebaseAuth = null;

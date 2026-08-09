@@ -6,7 +6,6 @@ const processedWebhookSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-      index: true,
     },
     processedAt: {
       type: Date,

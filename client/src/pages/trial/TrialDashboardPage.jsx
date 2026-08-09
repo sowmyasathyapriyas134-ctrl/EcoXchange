@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuthStore } from "@/store/auth.store";
 import { PageHeader } from "@/components/common/PageHeader";
 import { StatCard } from "@/components/common/StatCard";
@@ -7,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CameraCapture } from "@/components/camera/CameraCapture";
 import { useTrialSchedule, useTrialProgress, useTrialSubmissions, useSubmitTrialPhoto, useCreateTrialSubmission } from "@/hooks/queries/useTrial";
-import { useMembershipPlans, useSubscribeMembership } from "@/hooks/queries/useMember";
 import { Sparkles, Flame, Package, Lock, Award, Calendar, CheckCircle2 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -18,12 +18,10 @@ export default function TrialDashboardPage() {
   const { data: scheduleData } = useTrialSchedule();
   const { data: progressData } = useTrialProgress();
   const { data: submissionsData } = useTrialSubmissions();
-  const plans = useMembershipPlans();
 
   // Mutations
   const uploadPhoto = useSubmitTrialPhoto();
   const createSubmission = useCreateTrialSubmission();
-  const subscribe = useSubscribeMembership();
 
   const [imageFile, setImageFile] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -31,7 +29,6 @@ export default function TrialDashboardPage() {
   const schedule = scheduleData?.data ?? {};
   const progress = progressData?.data ?? { currentStreak: 0, approvedSubmissions: 0 };
   const submissions = submissionsData?.data ?? [];
-  const planList = plans.data?.data ?? plans.data ?? [];
 
   const streak = progress.currentStreak ?? 0;
   const isEligibleForUpgrade = streak >= 5;
@@ -64,9 +61,7 @@ export default function TrialDashboardPage() {
     }
   };
 
-  const handleSubscribe = (planId) => {
-    subscribe.mutate(planId);
-  };
+
 
   // Checklist for Onboarding
   const checklist = [
@@ -74,7 +69,7 @@ export default function TrialDashboardPage() {
     { label: "Verify House & Location", done: submissions.some(s => s.status === "approved") },
     { label: "First Waste Collection Upload", done: submissions.length > 0 },
     { label: "Complete 5 Daily Collections", done: streak >= 5 },
-    { label: "Convert to Permanent Member", done: false },
+    { label: "Convert to Permanent Member", done: user?.membershipStatus === "member" },
   ];
 
   return (
@@ -120,22 +115,22 @@ export default function TrialDashboardPage() {
               </CardContent>
             </Card>
           ) : (
-            <Card className="border-green-200 bg-green-50/50">
+            <Card className="border-emerald-200 bg-emerald-50/60 dark:bg-emerald-950/20">
               <CardHeader>
-                <CardTitle className="text-base text-green-700 flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5" /> Trial Completed Successfully!
+                <CardTitle className="text-lg text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
+                  <CheckCircle2 className="h-6 w-6 text-emerald-600" /> Trial Completed Successfully!
                 </CardTitle>
-                <CardDescription className="text-green-600">
-                  Congratulations! You've verified collections for 5 days. Convert to a permanent membership below to start selling products, receiving cashbacks, and unlocking rewards.
+                <CardDescription className="text-emerald-700 dark:text-emerald-400">
+                  Congratulations! You've verified waste collections for 5 days. Convert to a permanent membership now to receive your 3 Color-Coded Bins, 100 Covers, 100 QR Stickers, and Digital QR Identity!
                 </CardDescription>
               </CardHeader>
-              {planList.map((plan) => (
-                <CardFooter key={plan._id} className="pt-0">
-                  <Button onClick={() => handleSubscribe(plan._id)} disabled={subscribe.isPending} className="w-full">
-                    {subscribe.isPending ? "Processing..." : `Upgrade Now (₹${plan.price} / ${plan.durationDays} Days)`}
-                  </Button>
-                </CardFooter>
-              ))}
+              <CardFooter className="pt-0">
+                <Button asChild className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-11 text-base">
+                  <Link to="/membership/upgrade">
+                    Upgrade to Permanent Membership (₹300)
+                  </Link>
+                </Button>
+              </CardFooter>
             </Card>
           )}
 

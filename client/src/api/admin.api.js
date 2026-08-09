@@ -9,13 +9,14 @@ export const adminUsersApi = {
     apiClient.patch(`/admin/users/${id}/suspend`, { suspendedReason }),
   restore: (id) => apiClient.patch(`/admin/users/${id}/restore`),
   delete: (id) => apiClient.delete(`/admin/users/${id}`),
+  promoteUser: (id, binSize) => apiClient.post(`/admin/users/${id}/promote`, { binSize }),
 };
 
 // ── Create staff ────────────────────────────────────────────────────────────
 export const adminCreateApi = {
-  supervisor: (body) => apiClient.post("/admin/create-supervisor", body),
-  deliveryAgent: (body) => apiClient.post("/admin/create-delivery-agent", body),
-  recycler: (body) => apiClient.post("/admin/create-recycler", body),
+  supervisor: (body) => apiClient.post("/admin/users/supervisor", body),
+  deliveryAgent: (body) => apiClient.post("/admin/users/delivery-agent", body),
+  recycler: (body) => apiClient.post("/admin/users/recycler", body),
   admin: (body) => apiClient.post("/admin/create-admin", body),
 };
 

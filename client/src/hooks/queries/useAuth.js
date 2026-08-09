@@ -1,9 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  authApi,
-  sessionFromFirebaseResponse,
-  userFromMeResponse,
-} from "@/api/auth.api";
+import { authApi, userFromMeResponse } from "@/api/auth.api";
 import { parseApiError } from "@/api/axios";
 import { useAuthStore } from "@/store/auth.store";
 import { connectSocket } from "@/lib/socket";
@@ -25,33 +21,6 @@ export function useMe(enabled = true) {
   });
 }
 
-export function useFirebaseLogin() {
-  const setSession = useAuthStore((s) => s.setSession);
-  const qc = useQueryClient();
-
-  return useMutation({
-    mutationFn: (payload) => authApi.firebaseLogin(payload),
-    onSuccess: (res) => {
-      const session = sessionFromFirebaseResponse(res);
-      if (!session) {
-        toast.error(res.message ?? "Login failed");
-        return;
-      }
-      setSession({
-        token: session.token,
-        user: session.user,
-        modelName: session.modelName,
-      });
-      connectSocket();
-      qc.invalidateQueries({ queryKey: queryKeys.auth.me });
-      toast.success("Signed in successfully");
-    },
-    onError: (err) => {
-      toast.error(parseApiError(err));
-    },
-  });
-}
-
 export function useLogout() {
   const logout = useAuthStore((s) => s.logout);
   const qc = useQueryClient();
@@ -61,6 +30,65 @@ export function useLogout() {
     onSettled: () => {
       logout();
       qc.clear();
+    },
+  });
+}
+
+export function useLogin() {
+  const setSession = useAuthStore((s) => s.setSession);
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload) => authApi.login(payload),
+    onSuccess: (res) => {
+      if (!res.success || !res.token) {
+        toast.error(res.message ?? "Login failed");
+        return;
+      }
+      setSession({
+        token: res.token,
+        user: res.data,
+        modelName: res.modelName ?? "User",
+      });
+      connectSocket();
+      qc.invalidateQueries({ queryKey: queryKeys.auth.me });
+    },
+    onError: (err) => {
+      toast.error(parseApiError(err));
+    },
+  });
+}
+
+export function useSendOtp() {
+  return useMutation({
+    mutationFn: (payload) => authApi.sendOtp(payload),
+    onError: (err) => {
+      toast.error(parseApiError(err));
+    },
+  });
+}
+
+export function useVerifyOtp() {
+  const setSession = useAuthStore((s) => s.setSession);
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload) => authApi.verifyOtp(payload),
+    onSuccess: (res) => {
+      if (!res.success || !res.token) {
+        toast.error(res.message ?? "Verification failed");
+        return;
+      }
+      setSession({
+        token: res.token,
+        user: res.data,
+        modelName: res.modelName ?? "User",
+      });
+      connectSocket();
+      qc.invalidateQueries({ queryKey: queryKeys.auth.me });
+    },
+    onError: (err) => {
+      toast.error(parseApiError(err));
     },
   });
 }

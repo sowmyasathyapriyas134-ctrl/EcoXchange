@@ -506,6 +506,123 @@ const getSupervisorAnalytics = async (req, res, next) => {
   }
 };
 
+const { Wallet } = require("../models/Wallet");
+const { findUserByEmail } = require("../utils/findUserByEmail");
+const { findAccountByPhone } = require("../utils/findAccountByPhone");
+
+// ─────────────────────────────────────────────────────────────────────────────
+// POST /api/supervisor/delivery-agents
+// Allows Supervisor (or Admin) to create a Delivery Agent account.
+// ─────────────────────────────────────────────────────────────────────────────
+const createDeliveryAgentBySupervisor = async (req, res, next) => {
+  try {
+    const { name, fullName, email, phone, phoneNumber, password, address, vehicleType, vehicleNumber, employeeId } = req.body;
+    const agentName = name || fullName;
+    const agentPhone = phone || phoneNumber;
+
+    if (!agentName || !email || !password || !agentPhone) {
+      return sendError(res, 400, "Name, email, phone number, and password are required");
+    }
+
+    const existing = await findUserByEmail(email);
+    if (existing) {
+      return sendError(res, 400, "Email already registered");
+    }
+
+    const existingPhone = await findAccountByPhone(agentPhone);
+    if (existingPhone) {
+      return sendError(res, 400, "Phone number already registered");
+    }
+
+    const agent = await DeliveryAgent.create({
+      name: agentName,
+      email,
+      phone: agentPhone,
+      password,
+      address: address || "",
+      vehicleType: vehicleType || "",
+      vehicleNumber: vehicleNumber || "",
+      employeeId: employeeId || "",
+      createdBySupervisor: req.user._id,
+      assignedSupervisor: req.user.role === "supervisor" ? req.user._id : null,
+    });
+
+    await Wallet.create({ ownerId: agent._id, ownerModel: "DeliveryAgent" });
+
+    return res.status(201).json({
+      success: true,
+      message: "Delivery agent created successfully",
+      data: agent,
+    });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PATCH /api/supervisor/delivery-agents/:id
+// Update delivery agent details
+// ─────────────────────────────────────────────────────────────────────────────
+const updateDeliveryAgentBySupervisor = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+
+    const agent = await DeliveryAgent.findById(id);
+    if (!agent) return sendError(res, 404, "Delivery agent not found");
+
+    if (updates.name || updates.fullName) agent.name = updates.name || updates.fullName;
+    if (updates.phone || updates.phoneNumber) agent.phone = updates.phone || updates.phoneNumber;
+    if (updates.address !== undefined) agent.address = updates.address;
+    if (updates.vehicleType !== undefined) agent.vehicleType = updates.vehicleType;
+    if (updates.vehicleNumber !== undefined) agent.vehicleNumber = updates.vehicleNumber;
+    if (updates.employeeId !== undefined) agent.employeeId = updates.employeeId;
+
+    await agent.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Delivery agent updated successfully",
+      data: agent,
+    });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PATCH /api/supervisor/delivery-agents/:id/status
+// Suspend / Restore delivery agent
+// ─────────────────────────────────────────────────────────────────────────────
+const updateDeliveryAgentStatusBySupervisor = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { isSuspended, suspendedReason } = req.body;
+
+    const agent = await DeliveryAgent.findById(id);
+    if (!agent) return sendError(res, 404, "Delivery agent not found");
+
+    agent.isSuspended = Boolean(isSuspended);
+    if (agent.isSuspended) {
+      agent.suspendedAt = new Date();
+      agent.suspendedReason = suspendedReason || "Suspended by supervisor";
+    } else {
+      agent.suspendedAt = undefined;
+      agent.suspendedReason = undefined;
+    }
+
+    await agent.save();
+
+    return res.status(200).json({
+      success: true,
+      message: `Delivery agent ${agent.isSuspended ? "suspended" : "restored"} successfully`,
+      data: agent,
+    });
+  } catch (err) {
+    return next(err);
+  }
+};
+
 module.exports = {
   getSupervisorDashboardStats,
   getUsersByArea,
@@ -518,5 +635,7 @@ module.exports = {
   verifyPickup,
   rejectPickupVerification,
   getSupervisorAnalytics,
-  // NOTE: reassignAgent removed — frontend uses PATCH /api/pickups/:id/assign-agent
+  createDeliveryAgentBySupervisor,
+  updateDeliveryAgentBySupervisor,
+  updateDeliveryAgentStatusBySupervisor,
 };

@@ -6,12 +6,10 @@ const scheduleSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Recycler",
       required: true,
-      index: true,
     },
     date: {
       type: Date,
       required: true,
-      index: true,
     },
     startTime: {
       type: String,
@@ -50,7 +48,6 @@ const scheduleSchema = new mongoose.Schema(
       type: String,
       enum: ["active", "paused"],
       default: "active",
-      index: true,
     },
   },
   { timestamps: true }

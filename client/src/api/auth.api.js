@@ -1,9 +1,34 @@
 import { apiClient } from "@/api/axios";
-import { mapSession, mapApiUser } from "@/utils/mapUser";
+import { mapApiUser } from "@/utils/mapUser";
 
 export const authApi = {
-  firebaseLogin: async (payload) => {
-    const { data } = await apiClient.post("/auth/firebase", payload);
+  login: async (payload) => {
+    const { data } = await apiClient.post("/auth/login", payload);
+    return data;
+  },
+
+  register: async (payload) => {
+    const { data } = await apiClient.post("/auth/register", payload);
+    return data;
+  },
+
+  sendOtp: async (payload) => {
+    const { data } = await apiClient.post("/auth/send-otp", payload);
+    return data;
+  },
+
+  verifyOtp: async (payload) => {
+    const { data } = await apiClient.post("/auth/verify-otp", payload);
+    return data;
+  },
+
+  forgotPassword: async (payload) => {
+    const { data } = await apiClient.post("/auth/forgot-password", payload);
+    return data;
+  },
+
+  resetPassword: async (payload) => {
+    const { data } = await apiClient.post("/auth/reset-password", payload);
     return data;
   },
 
@@ -22,17 +47,6 @@ export const authApi = {
     return data;
   },
 };
-
-export function sessionFromFirebaseResponse(res) {
-  if (!res.success || !res.token || !res.data?.user) return null;
-  const mapped = mapSession(res.data);
-  return {
-    token: res.token,
-    user: mapped.user,
-    modelName: mapped.modelName,
-    wallet: mapped.wallet,
-  };
-}
 
 export function userFromMeResponse(res) {
   if (!res.success || !res.data?.user) return null;

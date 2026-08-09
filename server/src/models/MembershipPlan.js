@@ -7,7 +7,6 @@ const membershipPlanSchema = new mongoose.Schema(
       enum: ["silver", "gold", "platinum"],
       required: true,
       unique: true,
-      index: true,
     },
 
     price: { type: Number, required: true, min: 0 },

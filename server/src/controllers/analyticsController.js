@@ -3,6 +3,9 @@ const { User } = require("../models/User");
 const { Pickup } = require("../models/Pickup");
 const { RewardRedemption } = require("../models/RewardRedemption");
 const { Payment } = require("../models/Payment");
+const { Supervisor } = require("../models/Supervisor");
+const { DeliveryAgent } = require("../models/DeliveryAgent");
+const { Recycler } = require("../models/Recycler");
 
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
@@ -22,10 +25,9 @@ const adminOverview = async (_req, res, next) => {
       count(User, {}),
       count(User, { role: "member" }),
       count(User, { role: "trial_member" }),
-      // other models exist but are not required for core metrics in this phase
-      Promise.resolve(0),
-      Promise.resolve(0),
-      Promise.resolve(0),
+      count(Supervisor, {}),
+      count(DeliveryAgent, {}),
+      count(Recycler, {}),
     ]);
 
     const pickupsAgg = await Pickup.aggregate([

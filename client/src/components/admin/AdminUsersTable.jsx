@@ -63,9 +63,9 @@ export function AdminUsersTable({ roleFilter = null, emptyLabel = "No users foun
       const q = search.toLowerCase();
       filtered = filtered.filter(
         (u) =>
-          (u.name || "").toLowerCase().includes(q) ||
+          (u.name || u.fullName || u.companyName || "").toLowerCase().includes(q) ||
           (u.email || "").toLowerCase().includes(q) ||
-          (u.phone || "").toLowerCase().includes(q)
+          (u.phone || u.phoneNumber || "").toLowerCase().includes(q)
       );
     }
     return filtered;
@@ -80,7 +80,7 @@ export function AdminUsersTable({ roleFilter = null, emptyLabel = "No users foun
       header: "Name",
       render: (u) => (
         <span className="font-medium">
-          {u.name || <span className="text-muted-foreground italic">No name</span>}
+          {u.name || u.fullName || u.companyName || <span className="text-muted-foreground italic">No name</span>}
         </span>
       ),
     },
@@ -88,7 +88,9 @@ export function AdminUsersTable({ roleFilter = null, emptyLabel = "No users foun
       key: "email",
       header: "Email / Phone",
       render: (u) => (
-        <span className="text-sm text-muted-foreground">{u.email || u.phone || "—"}</span>
+        <span className="text-sm text-muted-foreground">
+          {u.email || u.phone || u.phoneNumber || "—"}
+        </span>
       ),
     },
     {

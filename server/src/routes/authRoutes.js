@@ -11,7 +11,6 @@ const {
   getMe,
   updateProfile,
 } = require("../controllers/authController");
-const { loginWithFirebase } = require("../controllers/firebaseAuthController");
 
 const router = express.Router();
 
@@ -21,7 +20,6 @@ router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
-router.post("/firebase", loginWithFirebase);
 router.post("/logout", logoutUser);
 router.get("/me", protect, getMe);
 router.put("/profile", protect, updateProfile);

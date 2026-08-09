@@ -22,6 +22,7 @@ import NotificationsPage from "@/pages/member/NotificationsPage";
 export default function MemberRoutes() {
   return (
     <Routes>
+      <Route index element={<MemberDashboardPage />} />
       <Route path="dashboard" element={<MemberDashboardPage />} />
       <Route path="profile" element={<ProfilePage />} />
       <Route path="wallet" element={<WalletPage />} />

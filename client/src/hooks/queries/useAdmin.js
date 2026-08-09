@@ -45,6 +45,17 @@ export function useUpdateUserRole() {
   });
 }
 
+export function usePromoteUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, binSize }) => adminUsersApi.promoteUser(id, binSize),
+    onSuccess: (_, { id }) => {
+      qc.invalidateQueries({ queryKey: queryKeys.admin.users });
+      qc.invalidateQueries({ queryKey: queryKeys.admin.user(id) });
+    },
+  });
+}
+
 export function useSuspendUser() {
   const qc = useQueryClient();
   return useMutation({
